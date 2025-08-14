@@ -1,0 +1,21 @@
+# Archivos de compilación Python
+__pycache__/
+*.pyc
+
+# Bases de datos y datos sensibles
+data/*.db
+data/usuarios.json
+
+# Reportes generados
+reportes/
+
+# Archivos temporales
+*.log
+*.tmp
+
+# Archivos de entorno
+.env
+.venv/
+# Archivos de sistema
+.DS_Store
+Thumbs.db

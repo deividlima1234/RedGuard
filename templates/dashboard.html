@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>RedGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+ <div class="sidebar">
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='img/RedGuar-logo-02.png') }}" alt="Logo RedGuard">
+    </div>
+    <ul>
+        <li><a href="#" onclick="mostrarSeccion('seccion-dashboard-principal')">Dashboard principal</a></li>
+        <li><a href="#" onclick="mostrarSeccion('seccion-detector')">Detector de Dispositivos</a></li>
+        <li><a href="#" onclick="mostrarSeccion('seccion-escaner-puertos')">Escáner de Puertos</a></li>
+        <li><a href="#" onclick="mostrarSeccion('seccion-lista-blanca')">Lista Blanca</a></li>
+        <li><a href="#">Generador de Reportes</a></li>
+        <li><a href="#">Sistema de Alertas</a></li>
+        <li><a href="#">Auditoría Completa</a></li>
+    </ul>
+    <div class="estado-sistema">
+        <p>🟢 Sistema Activo</p>
+        <p>Última actualización: 14:26</p>
+    </div>
+</div>
+
+
+<!-- Dashboard Principal -->
+<div class="main-content" id="seccion-dashboard-principal">
+    <header class="dashboard-header">
+        <h1>RedGuard - Panel General</h1>
+        <p class="subtitle">Resumen global de la seguridad y estado de la red</p>
+    </header>
+
+    <!-- KPIs -->
+    <section class="cards-dashboard">
+        <div class="card-kpi kpi-info">
+            <h2>🌐 Redes Escaneadas</h2>
+            <p id="redes-escaneadas">12</p>
+        </div>
+        <div class="card-kpi kpi-success">
+            <h2>📡 Dispositivos Detectados</h2>
+            <p id="total-dispositivos">48</p>
+        </div>
+        <div class="card-kpi kpi-warning">
+            <h2>🔍 Puertos Escaneados</h2>
+            <p id="puertos-escaneados">132</p>
+        </div>
+        <div class="card-kpi kpi-danger">
+            <h2>🚨 Dispositivos Sospechosos</h2>
+            <p id="sospechosos">3</p>
+        </div>
+        <div class="card-kpi kpi-primary">
+            <h2>📝 Reportes Generados</h2>
+            <p id="reportes">8</p>
+        </div>
+        <div class="card-kpi kpi-secondary">
+            <h2>🛡️ Auditorías Completas</h2>
+            <p id="auditorias">5</p>
+        </div>
+    </section>
+
+    <!-- Gráficos -->
+    <section class="charts-dashboard">
+        <div class="chart-box">
+            <h3>Estado de Puertos</h3>
+            <canvas id="graficoPuertos"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Histórico de Escaneos</h3>
+            <canvas id="graficoHistorico"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Lista Blanca vs Sospechosos</h3>
+            <canvas id="graficoLista"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Actividades de Auditoría</h3>
+            <canvas id="graficoAuditoria"></canvas>
+        </div>
+    </section>
+</div>
+
+<!-- Estilos -->
+<style>
+    body {
+        background-color: #121212;
+        color: #f5f5f5;
+        font-family: Arial, sans-serif;
+    }
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .subtitle {
+        color: #aaa;
+    }
+    .cards-dashboard {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .card-kpi {
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 1.1em;
+        background: #1e1e1e;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .card-kpi p {
+        font-size: 1.8em;
+        font-weight: bold;
+        margin-top: 8px;
+    }
+    .kpi-info { border-left: 5px solid #00bcd4; }
+    .kpi-success { border-left: 5px solid #4caf50; }
+    .kpi-warning { border-left: 5px solid #ffc107; }
+    .kpi-danger { border-left: 5px solid #f44336; }
+    .kpi-primary { border-left: 5px solid #2196f3; }
+    .kpi-secondary { border-left: 5px solid #9c27b0; }
+    .charts-dashboard {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    .chart-box {
+        background: #1e1e1e;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    canvas {
+        background: transparent;
+    }
+</style>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Simulación de datos
+    new Chart(document.getElementById('graficoPuertos'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Abiertos', 'Cerrados', 'Filtrados'],
+            datasets: [{
+                data: [35, 80, 17],
+                backgroundColor: ['#4caf50', '#f44336', '#ffc107']
+            }]
+        }
+    });
+
+    new Chart(document.getElementById('graficoHistorico'), {
+        type: 'line',
+        data: {
+            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Escaneos Realizados',
+                data: [5, 8, 6, 9, 12, 7],
+                borderColor: '#2196f3',
+                fill: false
+            }]
+        }
+    });
+
+    new Chart(document.getElementById('graficoLista'), {
+        type: 'pie',
+        data: {
+            labels: ['Confiables', 'Sospechosos'],
+            datasets: [{
+                data: [45, 3],
+                backgroundColor: ['#4caf50', '#f44336']
+            }]
+        }
+    });
+
+    new Chart(document.getElementById('graficoAuditoria'), {
+        type: 'bar',
+        data: {
+            labels: ['Puertos', 'Firewall', 'Usuarios', 'Servicios'],
+            datasets: [{
+                label: 'Chequeos Correctos',
+                data: [95, 85, 78, 88],
+                backgroundColor: '#9c27b0'
+            }]
+        }
+    });
+</script>
+
+
+
+<!-- SECCIÓN: Detector de Dispositivos -->
+    <div class="main-content" id="seccion-detector" style="display:none;">
+        <h1>Detector de Dispositivos</h1>
+
+        <div class="config-escaneo">
+            <h2>Configuración de Escaneo</h2>
+            <input type="text" id="ip_range" placeholder="192.168.1.0/24">
+            <input type="number" id="timeout" value="15">
+            <select id="protocolo">
+                <option value="ARP">ARP</option>
+            </select>
+            <button onclick="iniciarEscaneo()">Iniciar Escaneo</button>
+        </div>
+
+        <div class="tabla-dispositivos">
+            <h2>Dispositivos Detectados</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>IP</th>
+                        <th>MAC Address</th>
+                        <th>Usuario</th>
+                        <th>Nombre Host</th>
+                        <th>Método</th>
+                        <th>Fabricante</th>
+                        <th>Estado</th>
+                        <th>Última Detección</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dispositivo in dispositivos %}
+                    <tr>
+                        <td>{{ dispositivo.ip }}</td>
+                        <td>{{ dispositivo.mac }}</td>
+                        <td>{{ dispositivo.usuario }}</td>
+                        <td>{{ dispositivo.nombre_host }}</td>
+                        <td>{{ dispositivo.tipo }}</td>
+                        <td>{{ dispositivo.fabricante }}</td>
+                        <td>
+                            {% if dispositivo.estado == 'Confiable' %}
+                                <span class="estado-verde">{{ dispositivo.estado }}</span>
+                            {% else %}
+                                <span class="estado-rojo">{{ dispositivo.estado }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ dispositivo.ultima_deteccion }}</td>
+                        <td>
+                            <button>ℹ️</button>
+                            <button>🚫</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="loader-container">
+        <div class="spinner"></div>
+        <p>Escaneando la red, por favor espera...</p>
+    </div>
+
+<!-- =========================
+     SECCIÓN ESCÁNER DE PUERTOS
+========================== -->
+<div class="main-content" id="seccion-escaner-puertos" style="display:none;">
+    <h1>Escáner de Puertos</h1>
+
+    <!-- Configuración -->
+    <div class="config-escaneo">
+        <h2>Configuración de Escaneo</h2>
+        <input type="text" id="ip_objetivo" placeholder="Ej: 192.168.1.10" required>
+        <input type="text" id="rango_puertos" placeholder="Ej: 1-1000" required>
+        <button type="button" id="btn-iniciar-escaneo">Iniciar Escaneo</button>
+    </div>
+
+    <!-- Loader reutilizado -->
+    <div id="loader-escaner-puertos" class="loader-container">
+        <div class="spinner"></div>
+        <p>Escaneando los puertos, por favor espera...</p>
+    </div>
+
+    <!-- Resultados -->
+    <div class="tabla-dispositivos">
+        <h2>Resultados del Escaneo</h2>
+        <p id="ip-escaneada" style="font-weight: bold; color: #495057;"></p>
+
+        <table id="tabla-puertos">
+            <thead>
+                <tr>
+                    <th>Puerto</th>
+                    <th>Estado</th>
+                    <th>Servicio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Vacío al inicio -->
+            </tbody>
+        </table>
+
+        <a id="descargar-csv" href="#" class="btn-secundario" style="display:none;">📥 Descargar resultado CSV</a>
+    </div>
+</div>
+
+
+<!-- SECCIÓN: Lista Blanca -->
+<div class="main-content" id="seccion-lista-blanca" style="display:none;">
+    <h1>Lista Blanca</h1>
+
+    <div class="config-escaneo">
+        <h2>Añadir Dispositivo Confiable</h2>
+        <input type="text" id="ip_mac" placeholder="IP o MAC Address">
+        <input type="text" id="nombre_usuario" placeholder="Nombre de Usuario">
+        <button onclick="agregarListaBlanca()">Agregar</button>
+    </div>
+
+    <div class="tabla-dispositivos">
+        <h2>Dispositivos Confiables</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>IP / MAC</th>
+                    <th>Nombre</th>
+                    <th>Fecha Agregado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="lista-blanca-body">
+                <!-- Aquí se renderizan los elementos -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!--------------muestra los alert en la pantalla------->
+<div id="alert-container"></div>
+
+<!-- Modal de Confirmación Reutilizable -->
+<div id="modal-confirmacion" class="modal">
+    <div class="modal-contenido">
+        <h2 id="modal-titulo">Confirmar acción</h2>
+        <p id="modal-mensaje"></p>
+        <div class="modal-botones">
+            <button id="modal-cancelar" class="btn-secundario">Cancelar</button>
+            <button id="modal-confirmar" class="btn-peligro">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    
+</body>
+</html>
