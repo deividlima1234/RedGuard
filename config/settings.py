@@ -1,3 +1,4 @@
+#seting.py
 import os
 from dotenv import load_dotenv
 
@@ -11,3 +12,4 @@ TIEMPO_ESCUCHA = 10
 REMITENTE = os.getenv("REMITENTE")
 DESTINATARIO = os.getenv("DESTINATARIO")
 CONTRASENA_APP = os.getenv("CONTRASENA_APP")
+

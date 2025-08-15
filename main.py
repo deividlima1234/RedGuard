@@ -1,11 +1,12 @@
-# main.py
 from config.settings import TIEMPO_ESCUCHA, REMITENTE, DESTINATARIO
 from core.procesador import escanear_red_completa
 from core.escaner_puertos import escanear_puertos, guardar_resultados_csv
 from utils.archivo import guardar_csv
 from utils.usuarios import cargar_usuarios
 from core.sistema_alertas import enviar_correo
+from core.detector_sospechosos import detectar_sospechosos  # nuevo import
 import sys
+import os
 
 #----------------
 # Función para escanear de red
@@ -43,6 +44,8 @@ def escaneo_red():
     enviar_correo(REMITENTE, DESTINATARIO, archivo, asunto=asunto, mensaje=mensaje)
 
     print("[✓] Escaneo y notificación finalizados.")
+
+
 #----------------
 # Función para imprimir resultados de Nmap
 #----------------
@@ -67,6 +70,7 @@ def imprimir_resultados_nmap(resultados):
             print(f"{r['puerto']}/tcp  {r['estado']:<10} {r['servicio']}")
     else:
         print("No hay puertos cerrados o filtrados reportados.")
+
 
 #----------------
 # Función para escanear puertos
@@ -99,10 +103,32 @@ def escaneo_puertos():
         print("[✓] Resultado enviado por correo.")
     else:
         print(f"[-] No se detectaron puertos en {ip}")
+
+
+#----------------
+# Función para detectar dispositivos sospechosos
+#----------------
+def ejecutar_detector_sospechosos():
+    print("[*] Ejecutando detector de dispositivos sospechosos...")
+    archivo_csv, archivo_json = detectar_sospechosos()
+
+    if archivo_csv and os.path.exists(archivo_csv):
+        asunto = "🚨 RedGuard - Dispositivos sospechosos detectados"
+        mensaje = (
+            "Hola,\n\n"
+            "Se ha detectado actividad sospechosa en la red.\n"
+            "Adjunto encontrarás el reporte generado por el sistema.\n\n"
+            "Saludos,\nRedGuard"
+        )
+        enviar_correo(REMITENTE, DESTINATARIO, archivo_csv, asunto=asunto, mensaje=mensaje)
+        print(f"[✓] Reporte enviado por correo: {archivo_csv}")
+    else:
+        print("[✓] No se detectaron dispositivos sospechosos.")
+
+    
 #----------------
 # Menú principal
-#----------------   
-
+#----------------
 def menu():
     print("=== Bienvenido a RedGuard ===")
     while True:
@@ -110,7 +136,8 @@ def menu():
             print("\n=== RedGuard - Menú Principal ===")
             print("1. Ejecutar escaneo de red")
             print("2. Ejecutar escaneo de puertos")
-            print("3. Salir")
+            print("3. Ejecutar detector de dispositivos sospechosos")  # nuevo
+            print("4. Salir")
 
             opcion = input("Seleccione una opción: ")
 
@@ -119,6 +146,8 @@ def menu():
             elif opcion == "2":
                 escaneo_puertos()
             elif opcion == "3":
+                ejecutar_detector_sospechosos()
+            elif opcion == "4":
                 print("Saliendo...")
                 sys.exit()
             else:
@@ -130,4 +159,3 @@ def menu():
 
 if __name__ == "__main__":
     menu()
-

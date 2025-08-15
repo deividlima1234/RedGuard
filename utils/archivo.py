@@ -6,7 +6,7 @@ from datetime import datetime
 
 def guardar_csv(dispositivos, usuarios):
     fecha = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    carpeta_reportes = "reportes"
+    carpeta_reportes = "reportes/red"
     if not os.path.exists(carpeta_reportes):
         os.makedirs(carpeta_reportes)
     nombre_archivo = os.path.join(carpeta_reportes, f"resultado-{fecha}.csv")
