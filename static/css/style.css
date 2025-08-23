@@ -413,6 +413,56 @@ td button:hover {
     to { opacity: 0; transform: scale(0.95); }
 }
 
+
+
+/*------estilos de auditoria completa---*/
+/* Estilo para checkboxes personalizados */
+.checkbox-op {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-accent);
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background var(--transition-speed), transform var(--transition-speed);
+}
+
+.checkbox-op:hover {
+    background: #1f2023;
+    transform: translateY(-2px);
+}
+
+.checkbox-op input[type="checkbox"] {
+    accent-color: var(--accent-green);
+    transform: scale(1.3);
+}
+
+/*resultados en tablas  */
+.tabla-resultado {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 14px;
+    background: #1e1e1e;
+    color: #f0f0f0;
+}
+
+.tabla-resultado th, .tabla-resultado td {
+    border: 1px solid #444;
+    padding: 8px;
+    text-align: left;
+}
+
+.tabla-resultado th {
+    background: #333;
+    font-weight: bold;
+}
+
+.tabla-resultado tr:nth-child(even) {
+    background: #2a2a2a;
+}
+
 /*---------------------------------------*/
 /*------modal de confirmacion---------/*
 /* Fondo */

@@ -68,3 +68,5 @@ def escanear_puertos(ip_objetivo, puertos="1-1024"):
     except Exception as e:
         print(f"[!] Error al escanear puertos en {ip_objetivo}: {e}")
         return []
+    
+    

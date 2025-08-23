@@ -15,9 +15,10 @@
         <li><a href="#" onclick="mostrarSeccion('seccion-detector')">Detector de Dispositivos</a></li>
         <li><a href="#" onclick="mostrarSeccion('seccion-escaner-puertos')">Escáner de Puertos</a></li>
         <li><a href="#" onclick="mostrarSeccion('seccion-lista-blanca')">Lista Blanca</a></li>
+        <li><a href="#" onclick="mostrarSeccion('sesccion-dispositivos-sospechosos')">lista de Intrusos</a></li>
+        <li><a href="#" onclick="mostrarSeccion('seccion-auditoria-completa')">Auditoría Completa</a></li>
         <li><a href="#">Generador de Reportes</a></li>
-        <li><a href="#">Sistema de Alertas</a></li>
-        <li><a href="#">Auditoría Completa</a></li>
+        
     </ul>
     <div class="estado-sistema">
         <p>🟢 Sistema Activo</p>
@@ -310,6 +311,7 @@
         <button onclick="agregarListaBlanca()">Agregar</button>
     </div>
 
+
     <div class="tabla-dispositivos">
         <h2>Dispositivos Confiables</h2>
         <table>
@@ -327,7 +329,7 @@
         </table>
     </div>
 </div>
-
+<!----------------------------------------------------------->
 <!--------------muestra los alert en la pantalla------->
 <div id="alert-container"></div>
 
@@ -341,6 +343,98 @@
             <button id="modal-confirmar" class="btn-peligro">Confirmar</button>
         </div>
     </div>
+</div>
+<!----------------------------------------------------------------------->
+<!-- =========================
+     seccion dispositivos sospechosos
+========================== -->
+
+<div class="main-content" id="sesccion-dispositivos-sospechosos" style="display: none;">
+    <h1>Lista de Intrusos Detectados</h1>
+
+    <div class="tabla-dispositivos">
+        <h2>Intrusos detectados - Último escaneo</h2>
+        <table id="tabla-intrusos">
+            <thead>
+                <tr>
+                    <th>IP</th>
+                    <th>MAC</th>
+                    <th>Host</th>
+                    <th>Fecha Detectado</th>
+                    <th>Tipo</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <!-- Loader reutilizado -->
+    <div id="loader-intrusos" class="loader-container">
+        <div class="spinner"></div>
+        <p>Detectando intrusos, por favor espera...</p>
+    </div>
+    <div class="config-escaneo">
+        <button onclick="ejecutarEscaneo()">🔍 Ejecutar Escaneo</button>
+        <button onclick="descargarReporte()">⬇ Descargar Reporte</button>
+    </div>
+</div>
+
+<!-- =========================
+     auditoria completa
+========================== -->
+<div class="main-content" id="seccion-auditoria-completa" style="display: none;">
+      <h1>Auditoría General</h1>
+
+    <!-- Configuración Auditoría -->
+    <div class="config-escaneo">
+        <!-- Selector de Modo -->
+        <div class="modo-selector">
+            <label>
+                <input type="radio" name="modo" value="completa" onclick="cambiarModo('completa')">
+                <span>Auditoría Completa</span>
+            </label>
+            <label>
+                <input type="radio" name="modo" value="generar" onclick="cambiarModo('generar')">
+                <span>Auditoría Generar</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Operaciones -->
+    <div class="config-escaneo">
+        <h2>Operaciones</h2>
+        <label class="checkbox-op">
+            <input type="checkbox" id="red"> Escaneo de Red
+        </label>
+        <label class="checkbox-op">
+            <input type="checkbox" id="puertos"> Escaneo de Puertos
+        </label>
+        <label class="checkbox-op">
+            <input type="checkbox" id="intrusos"> Detección de Intrusos
+        </label>
+    </div>
+
+    <!-- Acción -->
+    <div class="config-escaneo">
+        <button onclick="ejecutarSeleccion()">🚀 Ejecutar Auditoría</button>
+        <button onclick="descargarReporteauditoria()">⬇ Descargar El ultimo Reporte</button>
+    </div>
+
+      <!-- Loader reutilizado -->
+    <div id="loader-auditoria" class="loader-container">
+        <div class="spinner"></div>
+        <p>auditoria em ejecucion, por favor espera...</p>
+    </div>
+<div class="config-escaneo" id="descargar-reportes" style="margin-top:20px;">
+    <h3>📥 Reportes Generados</h3>
+    <button onclick="cargarReportes()">🔄 Listar todo los  Reportes</button>
+    <ul id="lista-reportes"></ul>
+</div>
+    <!-- Resultados -->
+    <div id="resultado-auditoria" class="tabla-dispositivos" style="margin-top:20px;">
+        <h2>Resultados</h2>
+        <p>Aquí se mostrarán los resultados de la auditoría.</p>
+    </div>
+    <!-- 📥 Descargar Reportes -->
 </div>
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>

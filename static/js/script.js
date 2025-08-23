@@ -1,7 +1,7 @@
 // ==================== DASHBOARD ====================
 
 
-    // ==================== MANEJO DE SECCIONES ====================
+// ==================== MANEJO DE SECCIONES ====================
 function mostrarSeccion(seccionId) {
     // Ocultar todas las secciones
     document.querySelectorAll('.main-content').forEach(sec => {
@@ -25,11 +25,16 @@ function mostrarSeccion(seccionId) {
         enlaceActivo.classList.add('active');
     }
 
-    // Cargar datos adicionales si aplica
+    // ==================== CARGA DE DATOS SEGÚN SECCIÓN ====================
     if (seccionId === 'seccion-lista-blanca') {
         cargarListaBlanca();
     }
+
+    if (seccionId === 'sesccion-dispositivos-sospechosos') {
+        cargarIntrusos(); // ✅ Solo cuando entro a intrusos
+    }
 }
+
 
     // ==================== funciones globales para mostrar alert ====================
 function showAlert(message, type = "success", duration = 3000) {
@@ -308,3 +313,346 @@ function cargarListaBlanca() {
                 }
             });
         }
+
+
+// ==================== LISTAR INTRUSOS ====================
+async function cargarIntrusos() {
+    try {
+        let res = await fetch("/api/intrusos");
+        let data = await res.json();
+
+        if (data.error) {
+            showAlert("⚠ " + data.error, "warning");
+            return;
+        }
+
+        let tbody = document.querySelector("#tabla-intrusos tbody");
+        tbody.innerHTML = "";
+
+        data.intrusos.forEach(dev => {
+            let row = `
+                <tr>
+                    <td>${dev.ip}</td>
+                    <td>${dev.mac}</td>
+                    <td>${dev.nombre_host}</td>
+                    <td>${data.fecha_generacion}</td>
+                    <td>${dev.tipo}</td>
+                </tr>`;
+            tbody.innerHTML += row;
+        });
+
+        // ✅ Solo se muestra cuando entras a la sección intrusos
+        showAlert("📊 Intrusos cargados correctamente.", "success", 2000);
+
+    } catch (err) {
+        console.error(err);
+        showAlert("❌ Error al cargar intrusos.", "error");
+    }
+}
+
+
+
+
+async function ejecutarEscaneo() {
+    const loader = document.getElementById("loader-intrusos");
+    try {
+        // Mostrar loader
+        loader.style.display = "flex";
+
+        let res = await fetch("/api/scan_intrusos", { method: "POST" });
+        let data = await res.json();
+
+        if (data.mensaje) {
+            showAlert("✅ " + data.mensaje, "success", 4000);
+            cargarIntrusos(); // refrescar tabla
+        } else {
+            showAlert("❌ " + data.error, "error");
+        }
+    } catch (err) {
+        console.error(err);
+        showAlert("❌ Error en la conexión con el servidor.", "error");
+    } finally {
+        // Ocultar loader
+        loader.style.display = "none";
+    }
+}
+
+
+function descargarReporte() {
+    window.location.href = "/api/descargar_intrusos";
+    showAlert("⬇ Descargando reporte de intrusos...", "success", 3000);
+}
+
+
+/* =========================
+   LÓGICA AUDITORÍA COMPLETA
+============================ */
+
+// Cambiar modo entre "completa" y "generar"
+function cambiarModo(modo) {
+    const red = document.getElementById("red");
+    const puertos = document.getElementById("puertos");
+    const intrusos = document.getElementById("intrusos");
+
+    if (modo === "completa") {
+        // Marcar y bloquear todas las operaciones
+        red.checked = true;
+        puertos.checked = true;
+        intrusos.checked = true;
+
+        red.disabled = true;
+        puertos.disabled = true;
+        intrusos.disabled = true;
+
+    } else if (modo === "generar") {
+        // Habilitar checkboxes para selección manual
+        red.disabled = false;
+        puertos.disabled = false;
+        intrusos.disabled = false;
+
+        // Resetear selección
+        red.checked = false;
+        puertos.checked = false;
+        intrusos.checked = false;
+    }
+}
+
+// Dependencias: Puertos depende de Red
+document.addEventListener("DOMContentLoaded", () => {
+    const red = document.getElementById("red");
+    const puertos = document.getElementById("puertos");
+
+    // Si se activa Puertos → se activa Red
+    puertos.addEventListener("change", function() {
+        if (this.checked) {
+            red.checked = true;
+        }
+    });
+
+    // Si se desactiva Red → se desactiva Puertos
+    red.addEventListener("change", function() {
+        if (!this.checked) {
+            puertos.checked = false;
+        }
+    });
+});
+
+// Ejecutar auditoría
+function ejecutarSeleccion() {
+    const modo = document.querySelector('input[name="modo"]:checked')?.value;
+    const red = document.getElementById("red").checked;
+    const puertos = document.getElementById("puertos").checked;
+    const intrusos = document.getElementById("intrusos").checked;
+
+    if (!modo) {
+        showAlert("⚠️ Debes seleccionar un modo (Completa o Generar)", "warning", 4000);
+        return;
+    }
+
+    // Datos a enviar al backend
+    const payload = {
+        modo: modo,
+        operaciones: {
+            escaneo_red: red,
+            escaneo_puertos: puertos,
+            detectar_intrusos: intrusos
+        }
+    };
+
+    // Mostrar loader específico de auditoría
+    mostrarLoader(true);
+
+    // Enviar petición al backend
+    fetch("/auditoria", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        mostrarResultadosAuditoria(data);
+        mostrarLoader(false);
+        showAlert("✅ Auditoría ejecutada con éxito", "success", 4000);
+    })
+    .catch(error => {
+        console.error("Error en auditoría:", error);
+        mostrarLoader(false);
+        showAlert("❌ Error al ejecutar auditoría", "error", 4000);
+    });
+}
+
+// Mostrar resultados en el contenedor
+function mostrarResultadosAuditoria(data) {
+    const contenedor = document.getElementById("resultado-auditoria");
+    let html = `
+        <h2>Resultados Auditoría (${data.modo})</h2>
+        <p><b>Fecha:</b> ${data.fecha}</p>
+    `;
+
+// ==============================
+// Escaneo de Red
+// ==============================
+if (data.resultados.escaneo_red) {
+    const red = data.resultados.escaneo_red.dispositivos || [];
+    html += `
+        <h3>🌐 Escaneo de Red</h3>
+        <p><b>Interfaz:</b> ${data.resultados.escaneo_red.interfaz || '-'}<br>
+           <b>Rango:</b> ${data.resultados.escaneo_red.rango_ip || '-'}<br>
+           <b>Total detectados:</b> ${data.resultados.escaneo_red.total_detectados || 0}</p>
+
+        <table class="tabla-resultado">
+            <thead>
+                <tr>
+                    <th>IP</th>
+                    <th>MAC</th>
+                    <th>Host</th>
+                    <th>Usuario</th>
+                    <th>Tipo</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${red.map(d => `
+                    <tr>
+                        <td>${d.ip || '-'}</td>
+                        <td>${d.mac || '-'}</td>
+                        <td>${d.nombre_host || '-'}</td>
+                        <td>${d.usuario || '-'}</td>
+                        <td>${d.tipo || '-'}</td>
+                    </tr>
+                `).join("")}
+            </tbody>
+        </table>
+    `;
+}
+
+
+    // ==============================
+    // Escaneo de Puertos
+    // ==============================
+    if (data.resultados.escaneo_puertos) {
+        html += `
+            <h3>🔌 Escaneo de Puertos</h3>
+        `;
+
+        for (const [ip, puertos] of Object.entries(data.resultados.escaneo_puertos)) {
+            html += `
+                <h4>Host: ${ip}</h4>
+                <table class="tabla-resultado">
+                    <thead>
+                        <tr>
+                            <th>Puerto</th>
+                            <th>Estado</th>
+                            <th>Servicio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(puertos).map(([puerto, info]) => `
+                            <tr>
+                                <td>${puerto}</td>
+                                <td>${info.estado || '-'}</td>
+                                <td>${info.servicio || '-'}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+    }
+
+// ==============================
+// Dispositivos Sospechosos
+// ==============================
+if (data.resultados.dispositivos_sospechosos) {
+    const sospechososData = data.resultados.dispositivos_sospechosos;
+
+    // Extraemos array de sospechosos
+    const lista = Array.isArray(sospechososData.sospechosos)
+        ? sospechososData.sospechosos
+        : [];
+
+    html += `
+        <h3>🚨 Dispositivos Sospechosos</h3>
+        <p><b>Fecha generación:</b> ${sospechososData.fecha_generacion || '-'}<br>
+           <b>Rango IP:</b> ${sospechososData.rango_ip_escaneado || '-'}</p>
+    `;
+
+    if (lista.length > 0) {
+        html += `
+            <table class="tabla-resultado">
+                <thead>
+                    <tr>
+                        <th>IP</th>
+                        <th>MAC</th>
+                        <th>Host</th>
+                        <th>Usuario</th>
+                        <th>Tipo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${lista.map(d => `
+                        <tr>
+                            <td>${d.ip || '-'}</td>
+                            <td>${d.mac || '-'}</td>
+                            <td>${d.nombre_host || '-'}</td>
+                            <td>${d.usuario || '-'}</td>
+                            <td>${d.tipo || '-'}</td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        `;
+    } else {
+        html += `<p>✅ No se detectaron dispositivos sospechosos.</p>`;
+    }
+}
+
+
+    contenedor.innerHTML = html;
+}
+
+// ==============================
+// 📥 Gestión de Reportes
+// ==============================
+
+// Cargar lista de reportes disponibles
+function cargarReportes() {
+    fetch("/auditoria/reportes")
+        .then(res => res.json())
+        .then(archivos => {
+            const lista = document.getElementById("lista-reportes");
+            if (!archivos.length) {
+                lista.innerHTML = "<li>No hay reportes disponibles.</li>";
+                return;
+            }
+
+            lista.innerHTML = archivos.map(file => `
+                <li>
+                    <a href="/auditoria/download/${file}" target="_blank">
+                        ${file}
+                    </a>
+                </li>
+            `).join("");
+        })
+        .catch(err => {
+            console.error("Error al listar reportes:", err);
+            showAlert("❌ No se pudo cargar la lista de reportes", "error", 4000);
+        });
+}
+
+// Descargar el  reporte de auditoría
+
+function descargarReporteauditoria() {
+    window.open("/auditoria/ultimo/pdf", "_blank");
+}
+
+
+/* =========================
+   UTILIDADES VISUALES
+============================ */
+
+// Mostrar/ocultar loader de auditoría
+function mostrarLoader(estado) {
+    let loader = document.getElementById("loader-auditoria");
+    if (!loader) return;
+    loader.style.display = estado ? "flex" : "none";
+}

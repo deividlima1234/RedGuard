@@ -1,3 +1,4 @@
+#..main.py
 from config.settings import TIEMPO_ESCUCHA, REMITENTE, DESTINATARIO
 from core.procesador import escanear_red_completa
 from core.escaner_puertos import escanear_puertos, guardar_resultados_csv
@@ -5,6 +6,7 @@ from utils.archivo import guardar_csv
 from utils.usuarios import cargar_usuarios
 from core.sistema_alertas import enviar_correo
 from core.detector_sospechosos import detectar_sospechosos  # nuevo import
+from core.auditoria import ejecutar_auditoria
 import sys
 import os
 
@@ -126,6 +128,7 @@ def ejecutar_detector_sospechosos():
         print("[✓] No se detectaron dispositivos sospechosos.")
 
     
+    
 #----------------
 # Menú principal
 #----------------
@@ -136,8 +139,9 @@ def menu():
             print("\n=== RedGuard - Menú Principal ===")
             print("1. Ejecutar escaneo de red")
             print("2. Ejecutar escaneo de puertos")
-            print("3. Ejecutar detector de dispositivos sospechosos")  # nuevo
-            print("4. Salir")
+            print("3. Ejecutar detector de dispositivos sospechosos")
+            print("4. Ejecutar auditoría")
+            print("5. Salir")
 
             opcion = input("Seleccione una opción: ")
 
@@ -148,6 +152,8 @@ def menu():
             elif opcion == "3":
                 ejecutar_detector_sospechosos()
             elif opcion == "4":
+                menu_auditoria()
+            elif opcion == "5":
                 print("Saliendo...")
                 sys.exit()
             else:
@@ -157,5 +163,41 @@ def menu():
             sys.exit()
 
 
+#----------------
+# Menú Auditoría
+#----------------
+def menu_auditoria():
+    print("\n=== Módulo de Auditoría ===")
+    print("1. Auditoría Completa")
+    print("2. Auditoría Generar")
+    opcion = input("Seleccione una opción: ")
+
+    if opcion == "1":
+        print("[*] Ejecutando Auditoría Completa...")
+        resultado = ejecutar_auditoria(modo="completa")
+        guardar_reporte(resultado, "completa")
+    elif opcion == "2":
+        print("[*] Ejecutando Auditoría Generar...")
+        resultado = ejecutar_auditoria(modo="generar")
+        guardar_reporte(resultado, "generar")
+    else:
+        print("Opción inválida en Auditoría.")
+
+
+#----------------
+# Guardar reporte en JSON auditoria
+#----------------
+def guardar_reporte(resultado, modo):
+    import json, datetime
+    os.makedirs("reportes/auditoria", exist_ok=True)
+    archivo_salida = f"reportes/auditoria/reporte_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+
+    with open(archivo_salida, "w") as f:
+        json.dump(resultado, f, indent=4)
+
+    print(f"[✅] Auditoría ({modo}) completada. Reporte guardado en {archivo_salida}")
+
+
 if __name__ == "__main__":
     menu()
+

@@ -1,3 +1,4 @@
+#core/comparador_lista_blanca.py
 import json
 import os
 
